@@ -1,0 +1,23 @@
+data = {
+  {
+    'category': "talk",
+    'title': "제목",
+    'writer': "jane",
+    'content': "Hi!!! How nice the weather!",
+    'regdate': "2023-09-16",
+  },
+  {
+    'category': "share",
+    'title': "제목2",
+    'writer': "Peter",
+    'content': "I'm studying React now!!!",
+    'regdate': "2023-09-12",
+  },
+  {
+    'category': "question",
+    'title': "제목3",
+    'writer': "zenkins",
+    'content': "What on earth is React?",
+    'regdate': "2023-09-12",
+  }
+}

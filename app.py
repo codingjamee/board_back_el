@@ -1,42 +1,25 @@
-import logging
 from flask import Flask, render_template, jsonify, request, make_response
 from sqlalchemy import create_engine, text
 from flask_cors import CORS
+from db_connect import db
+from models import Post
+
+import logging
 
 app = Flask(__name__)
+
+# Database Settings
+app.config.from_pyfile('./config.py')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+# Logger Settings
+app.logger.setLevel(logging.INFO)
+app.logger.info("Flask app is running")
+logging.basicConfig(filename='app.log', level=logging.INFO)
+
+# CORS
 CORS(app, supports_credentials=True)
-
-app.config.from_pyfile('config.py')
-database = create_engine(app.config['DB_URL'], encoding = 'utf-8')
-app.database = database
-
-
-contents = [
-  {
-    'board_id': 1,
-    'category': "talk",
-    'title': "제목",
-    'writer': "jane",
-    'content': "Hi!!! How nice the weather!",
-    'regdate': "2023-09-16",
-  },
-  {
-    'board_id': 2,
-    'category': "share",
-    'title': "제목2",
-    'writer': "Peter",
-    'content': "I'm studying React now!!!",
-    'regdate': "2023-09-12",
-  },
-  {
-    'board_id': 3,
-    'category': "question",
-    'title': "제목3",
-    'writer': "zenkins",
-    'content': "What on earth is React?",
-    'regdate': "2023-09-12",
-  },
-]
 
 @app.route('/', methods=['GET', 'OPTIONS'])
 def render_home() :
@@ -52,13 +35,9 @@ def render_contents():
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
   else:
-    return jsonify(contents)
-
-
-app.logger.setLevel(logging.INFO)
-app.logger.info("Flask app is running")
-logging.basicConfig(filename='app.log', level=logging.INFO)
-
+    data = Post.query.order_by(Post.created_at.desc()).all()
+    data_json = [{'author': post.author, 'title': post.title, 'content': post.content, 'created_at': post.created_at} for post in data]
+    return jsonify(data_json)
 
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=True) 
+  app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=True)
