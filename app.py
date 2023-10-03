@@ -2,6 +2,8 @@ from flask import Flask, render_template, jsonify, request, make_response
 from flask_cors import CORS
 from db_connect import db
 from models import Post
+from sqlalchemy import select
+from datetime import datetime
 
 import logging
 
@@ -38,6 +40,9 @@ def render_contents():
     data_json = [{'author': post.author, 'title': post.title, 'content': post.content, 'created_at': post.created_at} for post in data]
     return jsonify(data_json)
   
+
+
+
 #게시물 작성
 
 @app.route('/post', methods=['POST'])
@@ -70,31 +75,33 @@ def read_post():
 
   return jsonify(post_list)
 
-#게시물 수정
-# @app.route('/post', methods=['PUT'])
-# def update_post(id):
-#   req_data = request.get_json()
 
-#   author = req_data['author']
-#   title = req_data['title']
-#   content = req_data['content']
-#   post = Post(author, title, content)
-#   db.session.add(post)
-#   db.session.commit()
-#   return jsonify({'result' : 'success'})
+#게시물 수정
+@app.route('/post/<post_id>/', methods=['PUT'])
+def update_post(post_id):
+  req_data = request.get_json()
+  print('updatepost')
+  selected_post = Post.query.filter_by(board_id = post_id).first()
+  print(selected_post)
+  if 'author' in req_data :
+    selected_post.author = req_data['author']
+  if 'title' in req_data :
+    selected_post.title = req_data['title']
+  if 'content' in req_data :
+    selected_post.content = req_data['content']
+  selected_post.created_at = datetime.utcnow()
+  db.session.add(selected_post)
+  db.session.commit()
+  return jsonify({'result' : 'update success'})
 
 #게시물 삭제
-# @app.route('/post', methods=['DELETE'])
-# def update_post(id):
-#   req_data = request.get_json()
+@app.route('/post/<post_id>/', methods=['DELETE'])
+def delete_post(post_id):
+  selected_post = Post.query.filter_by(board_id = post_id).first()
 
-#   author = req_data['author']
-#   title = req_data['title']
-#   content = req_data['content']
-#   post = Post(author, title, content)
-#   db.session.add(post)
-#   db.session.commit()
-#   return jsonify({'result' : 'success'})
+  db.session.delete(selected_post)
+  db.session.commit()
+  return jsonify({'result' : 'delete success'})
 
 
 if __name__ == '__main__':
