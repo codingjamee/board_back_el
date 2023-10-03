@@ -1,5 +1,4 @@
 from flask import Flask, render_template, jsonify, request, make_response
-from sqlalchemy import create_engine, text
 from flask_cors import CORS
 from db_connect import db
 from models import Post
@@ -38,6 +37,65 @@ def render_contents():
     data = Post.query.order_by(Post.created_at.desc()).all()
     data_json = [{'author': post.author, 'title': post.title, 'content': post.content, 'created_at': post.created_at} for post in data]
     return jsonify(data_json)
+  
+#게시물 작성
+
+@app.route('/post', methods=['POST'])
+def create_post():
+  req_data = request.get_json()
+
+  author = req_data['author']
+  title = req_data['title']
+  content = req_data['content']
+  post = Post(author, title, content)
+  db.session.add(post)
+  db.session.commit()
+  return jsonify({'result' : 'success'})
+
+#게시물 읽기
+@app.route('/posts', methods=['GET'])
+def read_post():
+  data = Post.query.order_by(Post.created_at.desc()).all()
+  post_list = []
+
+  for post in data :
+    post_data = {
+      'id': post.board_id,
+      'author': post.author,
+      'title' : post.title,
+      'content' : post.content,
+      'created_at' : post.created_at.strftime('%Y-%m-%d %H:%M:%S')
+    }
+    post_list.append(post_data)
+
+  return jsonify(post_list)
+
+#게시물 수정
+# @app.route('/post', methods=['PUT'])
+# def update_post(id):
+#   req_data = request.get_json()
+
+#   author = req_data['author']
+#   title = req_data['title']
+#   content = req_data['content']
+#   post = Post(author, title, content)
+#   db.session.add(post)
+#   db.session.commit()
+#   return jsonify({'result' : 'success'})
+
+#게시물 삭제
+# @app.route('/post', methods=['DELETE'])
+# def update_post(id):
+#   req_data = request.get_json()
+
+#   author = req_data['author']
+#   title = req_data['title']
+#   content = req_data['content']
+#   post = Post(author, title, content)
+#   db.session.add(post)
+#   db.session.commit()
+#   return jsonify({'result' : 'success'})
+
 
 if __name__ == '__main__':
   app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=True)
